@@ -145,8 +145,11 @@
         }
 
         frac = floatToFraction(value);
-
-        if (frac.den === 1) {
+        if (
+          frac.den === 1 ||
+          String(Math.abs(frac.num)).length > 3 ||
+          String(Math.abs(frac.den)).length > 3
+        ) {
           attempts++;
           continue;
         }
