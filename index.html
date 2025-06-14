@@ -8,25 +8,52 @@
     body {
       font-family: sans-serif;
       text-align: center;
-      margin-top: 50px;
+      padding: 20px;
     }
-    input {
-      width: 60px;
-      text-align: right;
-      font-size: 1.2em;
-    }
+
     #question {
       font-size: 1.5em;
       margin-bottom: 20px;
     }
+
+    .fraction-input {
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+
+    .fraction-input input {
+      width: 80px;
+      font-size: 1.2em;
+      text-align: center;
+      display: block;
+      margin: 3px auto;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 1.2em;
+      background-color: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #246b44;
+    }
+
     #result {
       margin-top: 20px;
       font-size: 1.2em;
     }
+
     #streak {
       margin-top: 10px;
       color: green;
+      font-weight: bold;
     }
+
     #error {
       color: red;
       font-weight: bold;
@@ -35,12 +62,16 @@
   </style>
 </head>
 <body>
-
+<h1>スーパー計算名人君</h1>
   <div id="question">読み込み中...</div>
 
-  <div>
-    <input type="number" id="num" placeholder="分子" /> /
+  <div class="fraction-input">
+    <input type="number" id="num" placeholder="分子" />
+    <hr style="width: 60px; margin: 3px auto;" />
     <input type="number" id="den" placeholder="分母" />
+  </div>
+
+  <div>
     <button onclick="checkAnswer()">答え合わせ</button>
   </div>
 
@@ -75,6 +106,10 @@
 
     function randomOperator() {
       return ["+", "-", "*", "/"][Math.floor(Math.random() * 4)];
+    }
+
+    function formatOperator(op) {
+      return op === "*" ? "×" : op === "/" ? "÷" : op;
     }
 
     function evaluateExpression(a, op1, b, op2, c, op3, d) {
@@ -118,15 +153,17 @@
 
         currentAnswer = frac;
 
-        document.getElementById("question").innerText = 
-          `${a} ${op1} ${b} ${op2} ${c} ${op3} ${d} = ?`;
+        // 表示用に演算子を変換（× ÷）
+        const displayExpr = `${a} ${formatOperator(op1)} ${b} ${formatOperator(op2)} ${c} ${formatOperator(op3)} ${d}`;
+        document.getElementById("question").innerText = `${displayExpr} = ?`;
+
         document.getElementById("num").value = "";
         document.getElementById("den").value = "";
         document.getElementById("error").innerText = "";
         return;
       }
 
-      document.getElementById("error").innerText = 
+      document.getElementById("error").innerText =
         "有効な問題を生成できませんでした。ページを再読み込みしてください。";
       document.getElementById("question").innerText = "問題生成エラー";
     }
@@ -153,8 +190,8 @@
         document.getElementById("result").innerText = "正解！";
       } else {
         streak = 0;
-        document.getElementById("result").innerText = 
-          `ちがうよ... 正解は ${currentAnswer.num}/${currentAnswer.den} です。`;
+        document.getElementById("result").innerText =
+          `ちがうよ… 正解は ${currentAnswer.num}/${currentAnswer.den} です。`;
       }
 
       document.getElementById("streak").innerText = `連続正解数: ${streak}`;
