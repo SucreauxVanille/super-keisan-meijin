@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>算数練習アプリ</title>
+  <title>スーパー計算名人君</title>
   <style>
     body {
       font-family: sans-serif;
@@ -27,6 +27,11 @@
       margin-top: 10px;
       color: green;
     }
+    #error {
+      color: red;
+      font-weight: bold;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -41,6 +46,7 @@
 
   <div id="result"></div>
   <div id="streak"></div>
+  <div id="error"></div>
 
   <script>
     let currentAnswer = { num: 0, den: 1 };
@@ -50,41 +56,105 @@
       return b === 0 ? a : gcd(b, a % b);
     }
 
-    function generateQuestion() {
-      // 仮の固定値：のちにランダムに変更可能
-      let a = 4, b = 2, c = 1, d = 3;
-      let value = (a + b) - (c * d); // (4 + 2) - (1 × 3) = 6 - 3 = 3
-      currentAnswer = { num: value, den: 1 };
+    function floatToFraction(x, tolerance = 1.0E-6) {
+      let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
+      let b = x;
+      do {
+        let a = Math.floor(b);
+        let aux = h1; h1 = a * h1 + h2; h2 = aux;
+        aux = k1; k1 = a * k1 + k2; k2 = aux;
+        b = 1 / (b - a);
+      } while (Math.abs(x - h1 / k1) > x * tolerance);
 
-      document.getElementById("question").innerText = `(${a} + ${b}) - (${c} × ${d}) = ?`;
-      document.getElementById("num").value = "";
-      document.getElementById("den").value = "";
+      return { num: h1, den: k1 };
+    }
+
+    function randomDecimal(min = 1, max = 10) {
+      return Math.round((Math.random() * (max - min) + min) * 100) / 100;
+    }
+
+    function randomOperator() {
+      return ["+", "-", "*", "/"][Math.floor(Math.random() * 4)];
+    }
+
+    function evaluateExpression(a, op1, b, op2, c, op3, d) {
+      try {
+        const expr = `${a}${op1}${b}${op2}${c}${op3}${d}`;
+        const result = eval(expr);
+        return result;
+      } catch {
+        return NaN;
+      }
+    }
+
+    function generateQuestion() {
+      let attempts = 0;
+      const maxAttempts = 10;
+      let value, frac;
+
+      while (attempts < maxAttempts) {
+        const a = randomDecimal();
+        const b = randomDecimal();
+        const c = randomDecimal();
+        const d = randomDecimal();
+
+        const op1 = randomOperator();
+        const op2 = randomOperator();
+        const op3 = randomOperator();
+
+        value = evaluateExpression(a, op1, b, op2, c, op3, d);
+
+        if (isNaN(value) || !isFinite(value) || value < 0) {
+          attempts++;
+          continue;
+        }
+
+        frac = floatToFraction(value);
+
+        if (frac.den === 1) {
+          attempts++;
+          continue;
+        }
+
+        currentAnswer = frac;
+
+        document.getElementById("question").innerText = 
+          `${a} ${op1} ${b} ${op2} ${c} ${op3} ${d} = ?`;
+        document.getElementById("num").value = "";
+        document.getElementById("den").value = "";
+        document.getElementById("error").innerText = "";
+        return;
+      }
+
+      document.getElementById("error").innerText = 
+        "有効な問題を生成できませんでした。ページを再読み込みしてください。";
+      document.getElementById("question").innerText = "問題生成エラー";
     }
 
     function checkAnswer() {
-      let num = parseInt(document.getElementById("num").value);
-      let den = parseInt(document.getElementById("den").value);
+      const num = parseInt(document.getElementById("num").value);
+      const den = parseInt(document.getElementById("den").value);
 
       if (!den || isNaN(num)) {
         document.getElementById("result").innerText = "分子・分母を入力してください。";
         return;
       }
 
-      let inputGCD = gcd(num, den);
-      let answerGCD = gcd(currentAnswer.num, currentAnswer.den);
+      const g1 = gcd(num, den);
+      const g2 = gcd(currentAnswer.num, currentAnswer.den);
 
-      let inputNum = num / inputGCD;
-      let inputDen = den / inputGCD;
-
-      let answerNum = currentAnswer.num / answerGCD;
-      let answerDen = currentAnswer.den / answerGCD;
+      const inputNum = num / g1;
+      const inputDen = den / g1;
+      const answerNum = currentAnswer.num / g2;
+      const answerDen = currentAnswer.den / g2;
 
       if (inputNum === answerNum && inputDen === answerDen) {
         streak++;
         document.getElementById("result").innerText = "正解！";
       } else {
         streak = 0;
-        document.getElementById("result").innerText = "ちがうよ...";
+        document.getElementById("result").innerText = 
+          `ちがうよ... 正解は ${currentAnswer.num}/${currentAnswer.den} です。`;
       }
 
       document.getElementById("streak").innerText = `連続正解数: ${streak}`;
