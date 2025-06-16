@@ -117,13 +117,15 @@
       return { num: h1, den: k1 };
     }
 
-    function randomDecimal(min = 1, max = 10) {
-      return Math.round((Math.random() * (max - min) + min) * 100) / 100;
-    }
+function randomDecimal() {
+  return parseFloat((Math.random() * 9 + 1).toFixed(2)); // 1.00〜10.00未満
+}
 
-    function randomOperator() {
-      return ["+", "-", "*", "/"][Math.floor(Math.random() * 4)];
-    }
+function getRandomOp() {
+  const ops = ["+", "-", "*", "/"];
+  return ops[Math.floor(Math.random() * ops.length)];
+}
+
 
     function formatOperator(op) {
       return op === "*" ? "×" : op === "/" ? "÷" : op;
@@ -139,54 +141,52 @@
       }
     }
 
-    function generateQuestion() {
-      let attempts = 0;
-      const maxAttempts = 10;
-      let value, frac;
+function generateQuestion() {
+  let attempts = 0;
+  while (attempts < 100) {
+    const a = randomDecimal();
+    const b = randomDecimal();
+    const c = randomDecimal();
+    const d = randomDecimal();
+    const ops = [getRandomOp(), getRandomOp(), getRandomOp()];
 
-      while (attempts < maxAttempts) {
-        const a = randomDecimal();
-        const b = randomDecimal();
-        const c = randomDecimal();
-        const d = randomDecimal();
+    const displayOp = (op) => op === "*" ? "×" : op === "/" ? "÷" : op;
 
-        const op1 = randomOperator();
-        const op2 = randomOperator();
-        const op3 = randomOperator();
+    const expressionStr = `(${a} ${ops[0]} ${b}) ${ops[1]} (${c} ${ops[2]} ${d})`;
+    const displayStr = `(${a} ${displayOp(ops[0])} ${b}) ${displayOp(ops[1])} (${c} ${displayOp(ops[2])} ${d})`;
 
-        value = evaluateExpression(a, op1, b, op2, c, op3, d);
-
-        if (isNaN(value) || !isFinite(value) || value < 0) {
-          attempts++;
-          continue;
-        }
-
-        frac = floatToFraction(value);
-        if (
-          frac.den === 1 ||
-          String(Math.abs(frac.num)).length > 3 ||
-          String(Math.abs(frac.den)).length > 3
-        ) {
-          attempts++;
-          continue;
-        }
-
-        currentAnswer = frac;
-
-        // 表示用に演算子を変換（× ÷）
-        const displayExpr = `${a} ${formatOperator(op1)} ${b} ${formatOperator(op2)} ${c} ${formatOperator(op3)} ${d}`;
-        document.getElementById("question").innerText = `${displayExpr} = ?`;
-
-        document.getElementById("num").value = "";
-        document.getElementById("den").value = "";
-        document.getElementById("error").innerText = "";
-        return;
-      }
-
-      document.getElementById("error").innerText =
-        "有効な問題を生成できませんでした。ページを再読み込みしてください。";
-      document.getElementById("question").innerText = "問題生成エラー";
+    let value;
+    try {
+      value = eval(expressionStr);
+    } catch {
+      attempts++;
+      continue;
     }
+
+    if (value < 0 || !isFinite(value)) {
+      attempts++;
+      continue;
+    }
+
+    const frac = floatToFraction(value);
+    if (
+      frac.den === 1 ||
+      Math.abs(frac.num) > 999 ||
+      Math.abs(frac.den) > 999
+    ) {
+      attempts++;
+      continue;
+    }
+
+    currentAnswer = frac;
+    document.getElementById("question").innerText = `問題: ${displayStr}`;
+    document.getElementById("numerator").value = "";
+    document.getElementById("denominator").value = "";
+    return;
+  }
+
+  document.getElementById("question").innerText = "問題の生成に失敗しました。ページを再読み込みしてください。";
+}
 
     function checkAnswer() {
       const num = parseInt(document.getElementById("num").value);
