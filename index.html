@@ -59,6 +59,22 @@
       font-weight: bold;
       margin-top: 10px;
     }
+    
+    @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-30px); }
+    }
+
+    .bounce {
+    animation: bounce 0.5s infinite;
+    }
+
+    .celebration-img {
+    width: 150px;
+    height: 150px;
+    margin: 0 10px;
+    }
+
   </style>
 </head>
 <body>
@@ -79,7 +95,7 @@
   <div id="result"></div>
   <div id="streak"></div>
   <div id="error"></div>
-
+  <div id="celebration" style="margin-top: 20px;"></div>
   <script>
     let currentAnswer = { num: 0, den: 1 };
     let streak = 0;
@@ -192,10 +208,14 @@
       if (inputNum === answerNum && inputDen === answerDen) {
         streak++;
         document.getElementById("result").innerText = "正解！";
+      if (streak === 10) {
+      showCelebration();
+      }
       } else {
-        streak = 0;
-        document.getElementById("result").innerText =
-          `ちがうよ… 正解は ${currentAnswer.num}/${currentAnswer.den} です。`;
+      streak = 0;
+      document.getElementById("result").innerText =
+      `ちがうよ… 正解は ${currentAnswer.num}/${currentAnswer.den} です。`;
+      document.getElementById("celebration").innerHTML = "";
       }
 
       document.getElementById("streak").innerText = `連続正解数: ${streak}`;
@@ -203,6 +223,17 @@
     }
 
     generateQuestion();
+    
+    function showCelebration() {
+    const celebration = document.getElementById("celebration");
+    celebration.innerHTML = `
+     <img src="sugoi7.png" class="bounce celebration-img" />
+     <img src="sugoi8.png" class="bounce celebration-img" />
+    `;
+    setTimeout(() => {
+     celebration.innerHTML = "";
+    }, 3000);
+}
   </script>
 </body>
 </html>
