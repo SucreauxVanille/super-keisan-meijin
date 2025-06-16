@@ -93,45 +93,44 @@
       return op === "*" ? "×" : op;
     }
 
-    function generateQuestion() {
-      let attempts = 0;
-      while (attempts < 100) {
-        const a = randomDecimal();
-        const b = randomDecimal();
-        const c = randomDecimal();
-        const d = randomDecimal();
-        const ops = [getRandomOp(), getRandomOp(), getRandomOp()];
+function generateQuestion() {
+  let attempts = 0;
+  while (attempts < 100) {
+    const a = randomDecimal();
+    const b = randomDecimal();
+    const c = randomDecimal();
+    const d = randomDecimal();
+    const ops = [getRandomOp(), getRandomOp(), getRandomOp()];
 
-        const expressionStr = `(${a} ${ops[0]} ${b}) ${ops[1]} (${c} ${ops[2]} ${d})`;
-        const displayStr = `(${a} ${displayOp(ops[0])} ${b}) ${displayOp(ops[1])} (${c} ${displayOp(ops[2])} ${d})`;
+    const expr1 = `(${a} ${ops[0]} ${b})`;
+    const expr2 = `(${c} ${ops[2]} ${d})`;
+    const fullExpr = `${expr1} ${ops[1]} ${expr2}`;
+    const displayStr = `${expr1.replace('*', '×')} ${displayOp(ops[1])} ${expr2.replace('*', '×')}`;
 
-        let value;
-        try {
-          value = eval(expressionStr);
-        } catch {
-          attempts++;
-          continue;
-        }
-
-        if (value < 0 || !isFinite(value)) {
-          attempts++;
-          continue;
-        }
-
-        if (value > 999.99) {
-          attempts++;
-          continue;
-        }
-
-        currentAnswerValue = parseFloat(value.toFixed(2));
-
-        document.getElementById("question").innerText = `${displayStr}=?`;
-        document.getElementById("decimalAnswer").value = "";
-        return;
-      }
-
-      document.getElementById("question").innerText = "問題の生成に失敗しました。ページを再読み込みしてください。";
+    let val1, val2, total;
+    try {
+      val1 = eval(expr1);
+      val2 = eval(expr2);
+      total = eval(fullExpr);
+    } catch {
+      attempts++;
+      continue;
     }
+
+    // チェック条件
+    if (val1 < 0 || val2 < 0 || total < 0 || !isFinite(total) || total > 999.99) {
+      attempts++;
+      continue;
+    }
+
+    currentAnswerValue = parseFloat(total.toFixed(2));
+    document.getElementById("question").innerText = `問題: ${displayStr}`;
+    document.getElementById("decimalAnswer").value = "";
+    return;
+  }
+
+  document.getElementById("question").innerText = "問題の生成に失敗しました。ページを再読み込みしてください。";
+}
 
     function checkAnswer() {
       const userValue = parseFloat(document.getElementById("decimalAnswer").value);
