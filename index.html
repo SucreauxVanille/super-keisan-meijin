@@ -2,237 +2,168 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>スーパー計算名人君</title>
   <style>
     body {
       font-family: sans-serif;
       text-align: center;
-      padding: 20px;
+      padding: 2em;
+      background: #f5f5fa;
     }
-
+    h1 {
+      font-size: 2em;
+      margin-bottom: 0.2em;
+    }
     #question {
       font-size: 1.5em;
-      margin-bottom: 20px;
+      margin: 1em 0;
     }
-
-    .fraction-input {
-      display: inline-block;
-      margin-bottom: 20px;
-    }
-
-    .fraction-input input {
-      width: 80px;
+    input[type="number"] {
       font-size: 1.2em;
-      text-align: center;
-      display: block;
-      margin: 3px auto;
+      padding: 0.5em;
+      width: 150px;
+      margin-bottom: 1em;
     }
-
     button {
-      padding: 12px 24px;
       font-size: 1.2em;
-      background-color: #2e8b57;
+      padding: 0.6em 1.2em;
+      background-color: #4CAF50;
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      margin: 0.5em;
     }
-
     button:hover {
-      background-color: #246b44;
+      background-color: #45a049;
     }
-
     #result {
-      margin-top: 20px;
       font-size: 1.2em;
+      margin-top: 1em;
     }
-
     #streak {
-      margin-top: 10px;
-      color: green;
       font-weight: bold;
+      margin-top: 0.5em;
     }
-
-    #error {
-      color: red;
-      font-weight: bold;
-      margin-top: 10px;
+    #celebration img {
+      width: 150px;
+      margin: 10px;
+      animation: jump 0.6s infinite alternate ease-in-out;
     }
-    
-    @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-30px); }
+    @keyframes jump {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-20px); }
     }
-
-    .bounce {
-    animation: bounce 0.5s infinite;
-    }
-
-    .celebration-img {
-    width: 150px;
-    height: 150px;
-    margin: 0 10px;
-    }
-
   </style>
 </head>
 <body>
-<h1>スーパー計算名人君</h1>
+  <h1>スーパー計算名人君</h1>
   <p>筆記用具を用意して取り組もう！</p>
-  <div id="question">読み込み中...</div>
+  <div id="question">問題を読み込み中...</div>
 
-  <div class="fraction-input">
-    <input type="number" id="num" placeholder="分子" />
-    <hr style="width: 60px; margin: 3px auto;" />
-    <input type="number" id="den" placeholder="分母" />
+  <div id="answer-section">
+    <input type="number" step="0.01" id="decimalAnswer" placeholder="小数で入力" />
   </div>
 
-  <div>
-    <button onclick="checkAnswer()">答え合わせ</button>
-  </div>
-
+  <button onclick="checkAnswer()">答え合わせ</button>
   <div id="result"></div>
-  <div id="streak"></div>
-  <div id="error"></div>
-  <div id="celebration" style="margin-top: 20px;"></div>
+  <div id="streak">連続正解数: 0</div>
+  <div id="celebration" style="display: none;">
+    <img src="sugoi7.png" alt="すごい1">
+    <img src="sugoi8.png" alt="すごい2">
+  </div>
+
   <script>
-    let currentAnswer = { num: 0, den: 1 };
+    let currentAnswerValue = 0;
     let streak = 0;
-
-    function gcd(a, b) {
-      return b === 0 ? a : gcd(b, a % b);
-    }
-
-    function floatToFraction(x, tolerance = 1.0E-6) {
-      let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
-      let b = x;
-      do {
-        let a = Math.floor(b);
-        let aux = h1; h1 = a * h1 + h2; h2 = aux;
-        aux = k1; k1 = a * k1 + k2; k2 = aux;
-        b = 1 / (b - a);
-      } while (Math.abs(x - h1 / k1) > x * tolerance);
-
-      return { num: h1, den: k1 };
-    }
 
     function randomDecimal() {
       return parseFloat((Math.random() * 9 + 1).toFixed(2)); // 1.00〜10.00未満
-    } 
+    }
 
     function getRandomOp() {
-      const ops = ["+", "-", "*"]; // "÷"（"/"）を除外
+      const ops = ["+", "-", "*"]; // 割り算を除外
       return ops[Math.floor(Math.random() * ops.length)];
     }
 
-    function formatOperator(op) {
-      return op === "*" ? "×" : op === "/" ? "÷" : op;
+    function displayOp(op) {
+      return op === "*" ? "×" : op;
     }
 
-    function evaluateExpression(a, op1, b, op2, c, op3, d) {
-      try {
-        const expr = `${a}${op1}${b}${op2}${c}${op3}${d}`;
-        const result = eval(expr);
-        return result;
-      } catch {
-        return NaN;
-      }
-    }
+    function generateQuestion() {
+      let attempts = 0;
+      while (attempts < 100) {
+        const a = randomDecimal();
+        const b = randomDecimal();
+        const c = randomDecimal();
+        const d = randomDecimal();
+        const ops = [getRandomOp(), getRandomOp(), getRandomOp()];
 
-function generateQuestion() {
-  let attempts = 0;
-  while (attempts < 100) {
-    const a = randomDecimal();
-    const b = randomDecimal();
-    const c = randomDecimal();
-    const d = randomDecimal();
-    const ops = [getRandomOp(), getRandomOp(), getRandomOp()];
+        const expressionStr = `(${a} ${ops[0]} ${b}) ${ops[1]} (${c} ${ops[2]} ${d})`;
+        const displayStr = `(${a} ${displayOp(ops[0])} ${b}) ${displayOp(ops[1])} (${c} ${displayOp(ops[2])} ${d})`;
 
-    const displayOp = (op) => op === "*" ? "×" : op === "/" ? "÷" : op;
+        let value;
+        try {
+          value = eval(expressionStr);
+        } catch {
+          attempts++;
+          continue;
+        }
 
-    const expressionStr = `(${a} ${ops[0]} ${b}) ${ops[1]} (${c} ${ops[2]} ${d})`;
-    const displayStr = `(${a} ${displayOp(ops[0])} ${b}) ${displayOp(ops[1])} (${c} ${displayOp(ops[2])} ${d})`;
+        if (value < 0 || !isFinite(value)) {
+          attempts++;
+          continue;
+        }
 
-    let value;
-    try {
-      value = eval(expressionStr);
-    } catch {
-      attempts++;
-      continue;
-    }
+        if (value > 999.99) {
+          attempts++;
+          continue;
+        }
 
-    if (value < 0 || !isFinite(value)) {
-      attempts++;
-      continue;
-    }
+        currentAnswerValue = parseFloat(value.toFixed(2));
 
-    const frac = floatToFraction(value);
-    if (
-      frac.den === 1 ||
-      Math.abs(frac.num) > 999 ||
-      Math.abs(frac.den) > 999
-    ) {
-      attempts++;
-      continue;
-    }
-
-    currentAnswer = frac;
-    document.getElementById("question").innerText = `${displayStr}＝?`;
-    document.getElementById("numerator").value = "";
-    document.getElementById("denominator").value = "";
-    return;
-  }
-
-  document.getElementById("question").innerText = "問題の生成に失敗しました。ページを再読み込みしてください。";
-}
-
-    function checkAnswer() {
-      const num = parseInt(document.getElementById("num").value);
-      const den = parseInt(document.getElementById("den").value);
-
-      if (!den || isNaN(num)) {
-        document.getElementById("result").innerText = "分子・分母を入力してください。";
+        document.getElementById("question").innerText = `問題: ${displayStr}`;
+        document.getElementById("decimalAnswer").value = "";
         return;
       }
 
-      const g1 = gcd(num, den);
-      const g2 = gcd(currentAnswer.num, currentAnswer.den);
+      document.getElementById("question").innerText = "問題の生成に失敗しました。ページを再読み込みしてください。";
+    }
 
-      const inputNum = num / g1;
-      const inputDen = den / g1;
-      const answerNum = currentAnswer.num / g2;
-      const answerDen = currentAnswer.den / g2;
+    function checkAnswer() {
+      const userValue = parseFloat(document.getElementById("decimalAnswer").value);
+      const correctValue = currentAnswerValue;
 
-      if (inputNum === answerNum && inputDen === answerDen) {
+      if (Math.abs(userValue - correctValue) < 0.001) {
         streak++;
-        document.getElementById("result").innerText = "正解！";
-      if (streak === 10) {
-      showCelebration();
-      }
+        document.getElementById("result").textContent = "⭕ 正解！";
+        if (streak === 10) {
+          showCelebration();
+        }
       } else {
-      streak = 0;
-      document.getElementById("result").innerText =
-      `ちがうよ… 正解は ${currentAnswer.num}/${currentAnswer.den} です。`;
-      document.getElementById("celebration").innerHTML = "";
+        streak = 0;
+        document.getElementById("result").textContent = `❌ ちがうよ。正解は: ${correctValue.toFixed(2)}`;
+        hideCelebration();
       }
 
-      document.getElementById("streak").innerText = `連続正解数: ${streak}`;
+      updateStreak();
       generateQuestion();
     }
 
-    generateQuestion();
-    
+    function updateStreak() {
+      document.getElementById("streak").textContent = `連続正解数: ${streak}`;
+    }
+
     function showCelebration() {
-    const celebration = document.getElementById("celebration");
-    celebration.innerHTML = `
-     <img src="sugoi7.png" class="bounce celebration-img" />
-     <img src="sugoi8.png" class="bounce celebration-img" />
-    `;
-    setTimeout(() => {
-     celebration.innerHTML = "";
-    }, 3000);
-}
+      document.getElementById("celebration").style.display = "block";
+    }
+
+    function hideCelebration() {
+      document.getElementById("celebration").style.display = "none";
+    }
+
+    window.onload = generateQuestion;
   </script>
 </body>
 </html>
