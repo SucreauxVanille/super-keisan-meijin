@@ -117,15 +117,14 @@
       return { num: h1, den: k1 };
     }
 
-function randomDecimal() {
-  return parseFloat((Math.random() * 9 + 1).toFixed(2)); // 1.00〜10.00未満
-}
+    function randomDecimal() {
+      return parseFloat((Math.random() * 9 + 1).toFixed(2)); // 1.00〜10.00未満
+    } 
 
-function getRandomOp() {
-  const ops = ["+", "-", "*", "/"];
-  return ops[Math.floor(Math.random() * ops.length)];
-}
-
+    function getRandomOp() {
+      const ops = ["+", "-", "*"]; // "÷"（"/"）を除外
+      return ops[Math.floor(Math.random() * ops.length)];
+    }
 
     function formatOperator(op) {
       return op === "*" ? "×" : op === "/" ? "÷" : op;
@@ -179,7 +178,7 @@ function generateQuestion() {
     }
 
     currentAnswer = frac;
-    document.getElementById("question").innerText = `問題: ${displayStr}`;
+    document.getElementById("question").innerText = `${displayStr}＝?`;
     document.getElementById("numerator").value = "";
     document.getElementById("denominator").value = "";
     return;
