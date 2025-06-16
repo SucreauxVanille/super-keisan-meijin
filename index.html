@@ -44,6 +44,7 @@
     }
     #streak {
       font-weight: bold;
+      color: gold;
       margin-top: 0.5em;
     }
     #celebration img {
@@ -123,7 +124,7 @@
 
         currentAnswerValue = parseFloat(value.toFixed(2));
 
-        document.getElementById("question").innerText = `問題: ${displayStr}`;
+        document.getElementById("question").innerText = `${displayStr}=?`;
         document.getElementById("decimalAnswer").value = "";
         return;
       }
