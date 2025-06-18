@@ -99,38 +99,36 @@ function generateQuestion() {
     const a = randomDecimal();
     const b = randomDecimal();
     const c = randomDecimal();
-    const d = randomDecimal();
-    const ops = [getRandomOp(), getRandomOp(), getRandomOp()];
+    const op1 = getRandomOp();
+    const op2 = getRandomOp();
 
-    const expr1 = `(${a} ${ops[0]} ${b})`;
-    const expr2 = `(${c} ${ops[2]} ${d})`;
-    const fullExpr = `${expr1} ${ops[1]} ${expr2}`;
-    const displayStr = `${expr1.replace('*', '×')} ${displayOp(ops[1])} ${expr2.replace('*', '×')}`;
+    const expr1 = `(${a} ${op1} ${b})`;
+    const fullExpr = `${expr1} ${op2} ${c}`;
+    const displayStr = `${expr1.replace('*', '×')} ${displayOp(op2)} ${c}`;
 
-    let val1, val2, total;
+    let val1, total;
     try {
       val1 = eval(expr1);
-      val2 = eval(expr2);
       total = eval(fullExpr);
     } catch {
       attempts++;
       continue;
     }
 
-    // チェック条件
-    if (val1 < 0 || val2 < 0 || total < 0 || !isFinite(total) || total > 999.99) {
+    if (val1 < 0 || total < 0 || !isFinite(total) || total > 999.99) {
       attempts++;
       continue;
     }
 
     currentAnswerValue = parseFloat(total.toFixed(2));
-    document.getElementById("question").innerText = `問題: ${displayStr}`;
+    document.getElementById("question").innerText = `${displayStr}=?`;
     document.getElementById("decimalAnswer").value = "";
     return;
   }
 
   document.getElementById("question").innerText = "問題の生成に失敗しました。ページを再読み込みしてください。";
 }
+
 
     function checkAnswer() {
       const userValue = parseFloat(document.getElementById("decimalAnswer").value);
