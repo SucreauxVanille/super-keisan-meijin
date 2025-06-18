@@ -134,7 +134,7 @@ function generateQuestion() {
       const userValue = parseFloat(document.getElementById("decimalAnswer").value);
       const correctValue = currentAnswerValue;
 
-      if (Math.abs(userValue - correctValue) < 0.001) {
+      if (Math.abs(userValue - correctValue) < 0.005) {
         streak++;
         document.getElementById("result").textContent = "⭕ 正解！";
         if (streak === 10) {
